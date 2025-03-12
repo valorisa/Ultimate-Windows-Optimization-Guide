@@ -1,6 +1,4 @@
-# currently under maintenance
-
-## Ultimate-Windows-Optimization-Guide
+# Ultimate-Windows-Optimization-Guide
 
 ## Introduction
 Windows guide for power users. <br> Covering all aspects, this guide simplifies the process of reinstalling and optimizing your new or current installation.
