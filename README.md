@@ -1,7 +1,7 @@
 # Ultimate-Windows-Optimization-Guide
 
 ## Introduction
-Windows guide for power users. <br> Covering all aspects of Windows, this guide simplifies the process of reinstalling and configuring your new or current installation.
+Windows guide for power users. <br> Covering all aspects, this guide simplifies the process of reinstalling and optimizing your new or current installation.
 
 ## Requirements
 - Windows 10 or 11
