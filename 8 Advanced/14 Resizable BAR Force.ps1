@@ -41,6 +41,23 @@
     }
     }
 
+Write-Host "Installing: NvidiaProfileInspector . . ."
+# check for file
+if (-Not (Test-Path -Path "$env:TEMP\Inspector.exe")) {
+# unblock drs files
+$path = "C:\ProgramData\NVIDIA Corporation\Drs"
+Get-ChildItem -Path $path -Recurse | Unblock-File
+# download inspector
+Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
+# enable nvidia legacy sharpen
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+} else {
+# skip
+}
+Clear-Host
+
     Write-Host "1. Resizable BAR Force: On"
     Write-Host "2. Resizable BAR Force: Off"
     while ($true) {
@@ -51,11 +68,6 @@
 
 Clear-Host
 Write-Host "Resizable BAR: On . . ."
-# unblock drs files
-$path = "C:\ProgramData\NVIDIA Corporation\Drs"
-Get-ChildItem -Path $path -Recurse | Unblock-File
-# download inspector
-Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
 # create config for inspector
 $MultilineComment = @"
 <?xml version="1.0" encoding="utf-16"?>
@@ -275,10 +287,6 @@ $MultilineComment = @"
 Set-Content -Path "$env:TEMP\ReBarOn.nip" -Value $MultilineComment -Force
 # import config
 Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\ReBarOn.nip"
-# enable nvidia legacy sharpen
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
 Clear-Host
 Write-Host "Check Resizable BAR Is On: In Inspector . . ." -ForegroundColor Red
 # open inspector
@@ -297,11 +305,6 @@ exit
 
 Clear-Host
 Write-Host "Resizable BAR: Off . . ."
-# unblock drs files
-$path = "C:\ProgramData\NVIDIA Corporation\Drs"
-Get-ChildItem -Path $path -Recurse | Unblock-File
-# download inspector
-Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
 # create config for inspector
 $MultilineComment = @"
 <?xml version="1.0" encoding="utf-16"?>
@@ -521,10 +524,6 @@ $MultilineComment = @"
 Set-Content -Path "$env:TEMP\ReBarOff.nip" -Value $MultilineComment -Force
 # import config
 Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\ReBarOff.nip"
-# enable nvidia legacy sharpen
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
 Clear-Host
 Write-Host "Check Resizable BAR Is Off: In Inspector . . ." -ForegroundColor Red
 # open inspector
