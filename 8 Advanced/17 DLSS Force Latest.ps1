@@ -41,27 +41,49 @@
     }
     }
 
-    Write-Host "1. DLSS Force Latest: On"
-    Write-Host "2. DLSS Force Latest: Off (Default)"
-    Write-Host "3. DLSS Overlay: On"
-	Write-Host "4. DLSS Overlay: Off (Default)"
-	Write-Host ""
-    Write-Host "DLSSv3 v3.10.X or above = DLSS 4" -ForegroundColor Red
-	Write-Host "DLSSv3 v3.1.X  or below = DLSS 3" -ForegroundColor Red
-	Write-Host ""
-    while ($true) {
-    $choice = Read-Host " "
-    if ($choice -match '^[1-4]$') {
-    switch ($choice) {
-    1 {
-
-Clear-Host
-Write-Host "DLSS Force Latest: On . . ."
+Write-Host "Installing: NvidiaProfileInspector . . ."
+# check for file
+if (-Not (Test-Path -Path "$env:TEMP\Inspector.exe")) {
 # unblock drs files
 $path = "C:\ProgramData\NVIDIA Corporation\Drs"
 Get-ChildItem -Path $path -Recurse | Unblock-File
 # download inspector
 Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
+# enable nvidia legacy sharpen
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+} else {
+# skip
+}
+Clear-Host
+
+    function show-menu {
+	Clear-Host
+    Write-Host "1. DLSS Force Latest: On"
+	Write-Host "2. DLSS Force Latest: Off (Default)"
+    Write-Host "3. DLSS Overlay: On"
+    Write-Host "4. DLSS Overlay: Off (Default)"
+	Write-Host "5. Read Only"
+	Write-Host "6. Inspector"
+	Write-Host ""
+    Write-Host "DLSSv3 v3.10.X or above = DLSS 4" -ForegroundColor Red
+	Write-Host "DLSSv3 v3.1.X  or below = DLSS 3" -ForegroundColor Red
+	Write-Host ""
+	              }
+	show-menu
+    while ($true) {
+    $choice = Read-Host " "
+    if ($choice -match '^[1-6]$') {
+    switch ($choice) {
+    1 {
+
+Clear-Host
+Write-Host "DLSS Force Latest: On"
+# revert read only nvdrsdb0.bin
+Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" -Name IsReadOnly -Value $false -ErrorAction SilentlyContinue | Out-Null
+# revert read only nvdrsdb1.bin
+Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" -Name IsReadOnly -Value $false -ErrorAction SilentlyContinue | Out-Null
 # create config for inspector
 $MultilineComment = @"
 <?xml version="1.0" encoding="utf-16"?>
@@ -275,22 +297,17 @@ $MultilineComment = @"
 Set-Content -Path "$env:TEMP\DLSSLatestOn.nip" -Value $MultilineComment -Force
 # import config
 Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\DLSSLatestOn.nip"
-# enable nvidia legacy sharpen
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-exit
+show-menu
 
       }
     2 {
 
 Clear-Host
-Write-Host "DLSS Force Latest: Off . . ."
-# unblock drs files
-$path = "C:\ProgramData\NVIDIA Corporation\Drs"
-Get-ChildItem -Path $path -Recurse | Unblock-File
-# download inspector
-Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
+Write-Host "DLSS Force Latest: Off"
+# revert read only nvdrsdb0.bin
+Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" -Name IsReadOnly -Value $false -ErrorAction SilentlyContinue | Out-Null
+# revert read only nvdrsdb1.bin
+Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" -Name IsReadOnly -Value $false -ErrorAction SilentlyContinue | Out-Null
 # create config for inspector
 $MultilineComment = @"
 <?xml version="1.0" encoding="utf-16"?>
@@ -304,24 +321,6 @@ $MultilineComment = @"
         <SettingID>390467</SettingID>
         <SettingValue>2</SettingValue>
         <ValueType>Dword</ValueType>
-      </ProfileSetting>
-      <ProfileSetting>
-        <SettingNameInfo />
-        <SettingID>983226</SettingID>
-        <SettingValue>0</SettingValue>
-        <ValueType>Dword</ValueType>
-      </ProfileSetting>
-      <ProfileSetting>
-        <SettingNameInfo />
-        <SettingID>983227</SettingID>
-        <SettingValue>0</SettingValue>
-        <ValueType>Dword</ValueType>
-      </ProfileSetting>
-      <ProfileSetting>
-        <SettingNameInfo />
-        <SettingID>983295</SettingID>
-        <SettingValue>AAAAAAAAAAA=</SettingValue>
-        <ValueType>Binary</ValueType>
       </ProfileSetting>
       <ProfileSetting>
         <SettingNameInfo>Texture filtering - Negative LOD bias</SettingNameInfo>
@@ -510,24 +509,53 @@ $MultilineComment = @"
 Set-Content -Path "$env:TEMP\DLSSLatestOff.nip" -Value $MultilineComment -Force
 # import config
 Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\DLSSLatestOff.nip"
-# enable nvidia legacy sharpen
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-exit
+show-menu
 
       }
     3 {
 
 Clear-Host
 reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" /v "ShowDlssIndicator" /t REG_DWORD /d "1024" /f | Out-Null
-exit
+Write-Host "DLSS Overlay: On . . ."
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+show-menu
+
       }
     4 {
 		
 Clear-Host
 cmd.exe /c "reg delete `"HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore`" /v `"ShowDlssIndicator`" /f >nul 2>&1"
-exit
+Write-Host "DLSS Overlay: Off (Default) . . ."
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+show-menu
 
       }
-    } } else { Write-Host "Invalid input. Please select a valid option (1-4)." } }
+    5 {
+
+Clear-Host
+# read only nvdrsdb0.bin
+Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" -Name IsReadOnly -Value $true -ErrorAction SilentlyContinue | Out-Null
+# read only nvdrsdb1.bin
+Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" -Name IsReadOnly -Value $true -ErrorAction SilentlyContinue | Out-Null
+Write-Host "Read Only"
+Write-Host ""
+Write-Host "nvdrsdb0.bin & nvdrsdb1.bin set to read only"
+Write-Host "Press any key to continue . . ."
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+show-menu
+
+      }
+    6 {
+
+Clear-Host
+Write-Host "Inspector"
+# revert read only nvdrsdb0.bin
+Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" -Name IsReadOnly -Value $false -ErrorAction SilentlyContinue | Out-Null
+# revert read only nvdrsdb1.bin
+Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" -Name IsReadOnly -Value $false -ErrorAction SilentlyContinue | Out-Null
+# open inspector
+Start-Process -wait "$env:TEMP\Inspector.exe"
+show-menu
+
+      }
+    } } else { Write-Host "Invalid input. Please select a valid option (1-6)." } }
