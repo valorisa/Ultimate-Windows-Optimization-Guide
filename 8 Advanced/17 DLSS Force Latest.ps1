@@ -233,7 +233,7 @@ $MultilineComment = @"
       <ProfileSetting>
         <SettingNameInfo>Anisotropic filtering mode</SettingNameInfo>
         <SettingID>282245910</SettingID>
-        <SettingValue>1</SettingValue>
+        <SettingValue>0</SettingValue>
         <ValueType>Dword</ValueType>
       </ProfileSetting>
       <ProfileSetting>
@@ -457,7 +457,7 @@ $MultilineComment = @"
       <ProfileSetting>
         <SettingNameInfo>Anisotropic filtering mode</SettingNameInfo>
         <SettingID>282245910</SettingID>
-        <SettingValue>1</SettingValue>
+        <SettingValue>0</SettingValue>
         <ValueType>Dword</ValueType>
       </ProfileSetting>
       <ProfileSetting>
