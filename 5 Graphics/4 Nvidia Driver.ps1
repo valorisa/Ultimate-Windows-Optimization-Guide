@@ -46,8 +46,12 @@
 	Write-Host ""
 	Write-Host "Unless recording or using replay buffer," -ForegroundColor Red 
 	Write-Host "avoid installing the NVIDIA App." -ForegroundColor Red
+	Write-Host ""
 	Write-Host "Game Filter (ALT+F3) and Statistics (ALT+R)," -ForegroundColor Red 
 	Write-Host "will significantly reduce FPS when enabled." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "In the NVIDIA App turn off," -ForegroundColor Red
+    Write-Host "'Automatically optimize newly added games and apps'." -ForegroundColor Red
     Write-Host ""
 
     while ($true) {
