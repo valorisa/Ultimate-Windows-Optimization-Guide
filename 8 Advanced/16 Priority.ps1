@@ -114,6 +114,10 @@ exit
     2 {
 
 Clear-Host
+# stop game launchers running
+$stop = "Battle.net", "BsgLauncher", "EADesktop", "EpicGamesLauncher", "GalaxyClient", "RobloxPlayerBeta", "RiotClientServices", "Launcher", "steam", "upc"
+$stop | ForEach-Object { Stop-Process -Name $_ -Force -ErrorAction SilentlyContinue }
+Clear-Host
 # show priority options
 Write-Host "1. Real Time"
 Write-Host "2. High"
