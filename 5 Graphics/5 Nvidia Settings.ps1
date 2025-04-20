@@ -51,10 +51,11 @@
 
 Clear-Host
 Write-Host "Installing: NvidiaProfileInspector . . ."
+# unblock drs files
+$path = "C:\ProgramData\NVIDIA Corporation\Drs"
+Get-ChildItem -Path $path -Recurse | Unblock-File
 # download inspector
-Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.zip" -File "$env:TEMP\Inspector.zip"
-# extract files
-Expand-Archive "$env:TEMP\Inspector.zip" -DestinationPath "$env:TEMP\Inspector" -ErrorAction SilentlyContinue
+Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
 # create config for inspector
 $MultilineComment = @"
 <?xml version="1.0" encoding="utf-16"?>
@@ -204,7 +205,7 @@ $MultilineComment = @"
       <ProfileSetting>
         <SettingNameInfo>Anisotropic filtering mode</SettingNameInfo>
         <SettingID>282245910</SettingID>
-        <SettingValue>1</SettingValue>
+        <SettingValue>0</SettingValue>
         <ValueType>Dword</ValueType>
       </ProfileSetting>
       <ProfileSetting>
@@ -253,9 +254,13 @@ $MultilineComment = @"
   </Profile>
 </ArrayOfProfile>
 "@
-Set-Content -Path "$env:TEMP\Inspector\Inspector.nip" -Value $MultilineComment -Force
+Set-Content -Path "$env:TEMP\Inspector.nip" -Value $MultilineComment -Force
 # import config
-Start-Process -wait "$env:TEMP\Inspector\nvidiaProfileInspector.exe" -ArgumentList "$env:TEMP\Inspector\Inspector.nip"
+Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\Inspector.nip"
+# enable nvidia legacy sharpen
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
 # open nvidiacontrolpanel
 Start-Process "shell:appsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel"
 exit
@@ -265,10 +270,11 @@ exit
 
 Clear-Host
 Write-Host "Installing: NvidiaProfileInspector . . ."
+# unblock drs files
+$path = "C:\ProgramData\NVIDIA Corporation\Drs"
+Get-ChildItem -Path $path -Recurse | Unblock-File
 # download inspector
-Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.zip" -File "$env:TEMP\Inspector.zip"
-# extract files
-Expand-Archive "$env:TEMP\Inspector.zip" -DestinationPath "$env:TEMP\Inspector" -ErrorAction SilentlyContinue
+Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
 # create config for inspector
 $MultilineComment = @"
 <?xml version="1.0" encoding="utf-16"?>
@@ -280,9 +286,13 @@ $MultilineComment = @"
   </Profile>
 </ArrayOfProfile>
 "@
-Set-Content -Path "$env:TEMP\Inspector\Defaults.nip" -Value $MultilineComment -Force
+Set-Content -Path "$env:TEMP\Defaults.nip" -Value $MultilineComment -Force
 # import config
-Start-Process -wait "$env:TEMP\Inspector\nvidiaProfileInspector.exe" -ArgumentList "$env:TEMP\Inspector\Defaults.nip"
+Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\Defaults.nip"
+# disable nvidia legacy sharpen
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f | Out-Null
+reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f | Out-Null
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f | Out-Null
 # open nvidiacontrolpanel
 Start-Process "shell:appsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel"
 exit
