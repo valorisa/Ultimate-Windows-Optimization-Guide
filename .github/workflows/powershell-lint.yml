@@ -38,7 +38,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-
+          Import-Module PSScriptAnalyzer -RequiredVersion '1.25.0' -Force
+          
           function ConvertTo-Data([string]$s) {
             $s.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
           }
