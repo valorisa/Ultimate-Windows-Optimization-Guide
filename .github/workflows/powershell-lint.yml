@@ -1,0 +1,86 @@
+name: PowerShell lint
+
+on:
+  push:
+    branches: [main]
+    paths: ['**.ps1', '**.psm1', '**.psd1', '.github/workflows/powershell-lint.yml']
+  pull_request:
+    branches: [main]
+    paths: ['**.ps1', '**.psm1', '**.psd1', '.github/workflows/powershell-lint.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Analyze PowerShell scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MAX_WARNINGS: '32'   # base actuelle ; a baisser progressivement
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Install-Module PSScriptAnalyzer -RequiredVersion '1.25.0' -Scope CurrentUser -Force
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module PSScriptAnalyzer -RequiredVersion '1.25.0' -Force
+          
+          function ConvertTo-Data([string]$s) {
+            $s.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+          }
+          function ConvertTo-Property([string]$s) {
+            (ConvertTo-Data $s).Replace(':', '%3A').Replace(',', '%2C')
+          }
+
+          $results = @(
+            Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 |
+              Where-Object { $_.Severity -in 'Error', 'ParseError', 'Warning' }
+          )
+          $errors   = @($results | Where-Object { $_.Severity -ne 'Warning' })
+          $warnings = @($results | Where-Object { $_.Severity -eq 'Warning' })
+
+          # Annotations plafonnees : le detail complet est dans le log et le resume.
+          $emitted = @{ error = 0; warning = 0 }
+          foreach ($r in $results) {
+            $level = if ($r.Severity -eq 'Warning') { 'warning' } else { 'error' }
+            if ($emitted[$level] -ge 10) { continue }
+            $emitted[$level]++
+            $rel = [IO.Path]::GetRelativePath($PWD.Path, $r.ScriptPath)
+            $msg = ConvertTo-Data "$($r.RuleName): $($r.Message)"
+            Write-Host "::$level file=$(ConvertTo-Property $rel),line=$($r.Line),col=$($r.Column)::$msg"
+          }
+
+          $results |
+            Select-Object Severity, RuleName,
+              @{ n = 'File'; e = { [IO.Path]::GetRelativePath($PWD.Path, $_.ScriptPath) } }, Line |
+            Format-Table -AutoSize | Out-String -Width 200 | Write-Host
+
+          $summary = @(
+            '### PSScriptAnalyzer',
+            '',
+            "Errors: $($errors.Count) / Warnings: $($warnings.Count) (max autorise: $env:MAX_WARNINGS)",
+            '',
+            '| Rule | Count |',
+            '|---|---|'
+          )
+          $summary += $results | Group-Object RuleName | Sort-Object Count -Descending |
+            ForEach-Object { "| $($_.Name) | $($_.Count) |" }
+          $summary | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+
+          Write-Host "Errors: $($errors.Count) / Warnings: $($warnings.Count)"
+          if ($errors.Count -gt 0 -or $warnings.Count -gt [int]$env:MAX_WARNINGS) { exit 1 }
